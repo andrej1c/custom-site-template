@@ -8,6 +8,11 @@ WP_VERSION=`get_config_value 'wp_version' 'latest'`
 WP_TYPE=`get_config_value 'wp_type' "single"`
 DB_NAME=`get_config_value 'db_name' "${VVV_SITE_NAME}"`
 DB_NAME=${DB_NAME//[\\\/\.\<\>\:\"\'\|\?\!\*-]/}
+DB_PREFIX=`get_config_value 'db_prefix' "wp_"`
+DB_BACKUP_URL=`get_config_value 'db_backup_url' ""`
+DB_BACKUP_FILENAME=`get_config_value 'db_backup_filename' ""`
+UPLOADS_BACKUP_URL=`get_config_value 'uploads_backup_url' ""`
+UPLOADS_BACKUP_FILENAME=`get_config_value 'uploads_backup_filename' ""`
 
 # Make a database, if we don't already have one
 echo -e "\nCreating database '${DB_NAME}' (if it's not already there)"
@@ -28,7 +33,7 @@ fi
 
 if [[ ! -f "${VVV_PATH_TO_SITE}/public_html/wp-config.php" ]]; then
   echo "Configuring WordPress Stable..."
-  noroot wp core config --dbname="${DB_NAME}" --dbuser=wp --dbpass=wp --quiet --extra-php <<PHP
+  noroot wp core config --dbname="${DB_NAME}" --dbuser=wp --dbpass=wp --dbprefix="${DB_PREFIX}" --quiet --extra-php <<PHP
 define( 'WP_DEBUG', true );
 PHP
 fi
@@ -45,6 +50,19 @@ if ! $(noroot wp core is-installed); then
   fi
 
   noroot wp core ${INSTALL_COMMAND} --url="${DOMAIN}" --quiet --title="${SITE_TITLE}" --admin_name=admin --admin_email="admin@local.test" --admin_password="password"
+
+  # database restore
+  wget "${DB_BACKUP_URL}"
+  gunzip "${DB_BACKUP_FILENAME}.gz"
+  mysql -uwp -pwp "${DB_NAME}" < "${DB_BACKUP_FILENAME}"
+  rm ${DB_BACKUP_FILENAME}
+
+  # uploads restore
+  wget "${UPLOADS_BACKUP_URL}"
+  tar xvzf "${UPLOADS_BACKUP_FILENAME}"
+  rsync -av uploads/* ${VVV_PATH_TO_SITE}/public_html/wp-content/uploads/
+  rm "${UPLOADS_BACKUP_FILENAME}"
+  rm -rf uploads
 else
   echo "Updating WordPress Stable..."
   cd ${VVV_PATH_TO_SITE}/public_html

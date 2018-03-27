@@ -109,4 +109,32 @@ custom:
 ```
 Defines the DB name for the installation.
 
+```
+custom:
+    db_prefix: wp_abcde_
+```
+Defines custom table prefix.
 
+```
+custom:
+    db_backup_url: http://10.0.2.2/my-site/my-site.sql.gz
+```
+URL with gzipped db backup.
+
+```
+custom:
+    db_backup_filename: my-site.sql
+```
+Filename of the SQL file backup.
+
+```
+custom:
+    uploads_backup_url: http://10.0.2.2/my-site/uploads.tgz
+```
+URL with tarballed gzipped uploads archive.
+
+```
+custom:
+    uploads_backup_filename: uploads.tgz
+```
+Filename of the tarballed gzipped uploads archive.
